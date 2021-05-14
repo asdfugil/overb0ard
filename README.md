@@ -8,7 +8,7 @@ It uses the same syscalls as launchd does when spawning a new process. This woul
 
 ### Installation
 
-The latest Debian package can be downloaded from the [Releases](https://github.com/conradev/jetsamctl/releases) section.
+The latest Debian package can be downloaded from my [Cydia Repository](https://doregon.github.io/cydia) in the System section.
 
 ### Usage
 
