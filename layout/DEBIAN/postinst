@@ -1,0 +1,7 @@
+#! /bin/bash
+
+chown 0:0 /usr/bin/jetsamctl
+chmod 4701 /usr/bin/jetsamctl
+
+echo "overb0ard has been installed." 
+echo "Take a look at the GitHub repository to learn how to use me!"
