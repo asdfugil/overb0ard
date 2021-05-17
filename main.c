@@ -22,7 +22,7 @@ int main(int argc, const char * argv[]) {
     setuid(0);
     setgid(0);
 
-    static const char *usage = "usage: %s [-l limit] [-p priority] process\n";
+    static const char *usage = "\noverb0ard, made by Doregon with love <3\nusage: %s [-l limit ][-p priority] process\nSee the GitHub repository for more information.\n\n";
 
     static struct option opts[] = {
         {"limit", optional_argument, NULL, 'l'},
@@ -32,7 +32,7 @@ int main(int argc, const char * argv[]) {
 
     int ch;
     char *prioritystr = NULL, *limitstr = NULL;
-    while ((ch = getopt_long(argc, (char * const *)argv, "l:p:", opts, NULL)) != -1) {
+    while ((ch = getopt_long(argc, (char * const *)argv, "l:p:s:", opts, NULL)) != -1) {
         switch (ch) {
             case 'l':
                 limitstr = optarg;
@@ -118,6 +118,6 @@ int main(int argc, const char * argv[]) {
             return 1;
         }
     }
-
+    
     return 0;
 }
