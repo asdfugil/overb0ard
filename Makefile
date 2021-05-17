@@ -6,7 +6,7 @@ include theos/makefiles/common.mk
 TOOL_NAME = jetsamctl
 jetsamctl_CFLAGS = -Wall -Wpedantic -Wextra
 jetsamctl_FILES = main.c
-
+jetsamctl_CODESIGN_FLAGS = -Sentitlements.xml
 include $(THEOS_MAKE_PATH)/tool.mk
 
 before-all::
