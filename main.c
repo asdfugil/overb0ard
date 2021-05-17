@@ -18,7 +18,7 @@
 #include <sys/kern_memorystatus.h>
 
 int main(int argc, const char * argv[]) {
-    
+    // Make it easier for devs to use overb0ard in their code.    
     setuid(0);
     setgid(0);
 
