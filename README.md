@@ -8,23 +8,21 @@ The latest Debian package can be downloaded from my [Cydia Repository](https://d
 
 ### Usage
 
-You can use `jetsamctl` to set the per process memory limit or Jetsam priority for a process.
+Type `jetsamctl` in a terminal to learn more about how to use. Here's some examples of what you can do:
 
-Limit the Phone app to 48 MB of memory:
-
+Limit the Phone app to 48 MB of memory: 
 ```
-# jetsamctl -l 48 MobilePhone
+jetsamctl -l 48 MobilePhone
 ```
 
-Set the priority of the Photos app to that of an iOS keyboard extension:
-
+Set the priority of the Photos app to that of an iOS keyboard extension: 
 ```
-# jetsamctl -p 8 MobileSlideShow
+jetsamctl -p 8 MobileSlideShow
 ```
 
 ### Priorities
 
-Here is a table of all of the priorities and their numerical values:
+Here is a table of all of the priorities and their numerical values. A lower priority value obviously means that jetsam will bother it more.
 
 | Priority | Value | Examples |
 |:--|:--:|:--:|
