@@ -1,10 +1,6 @@
 # overb0ard
 
-**Revived version of jetsamctl, the original README.md file's contents are below.**
-
-A simple command line tool for jailbroken devices to modify the Jetsam configuration for a process.
-
-It uses the same syscalls as launchd does when spawning a new process. This would not have been possible without Jonathan Levin's [fantastic article](http://www.newosxbook.com/articles/MemoryPressure.html) on Jetsam.
+**iOS and macOS share a program: jetsam.** The tl;dr is that jetsam monitors memory usage, asks for memory when there isn't much free, and kills other programs that don't give back as much as was requested. This program--a continuation from conradev's jetsamctl--serves to override the strict limits that jetsam sets on iOS devices with a simple command. All you need is a device with iOS 6 or later.
 
 ### Installation
 
