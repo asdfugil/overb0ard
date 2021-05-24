@@ -14,11 +14,14 @@
 #include <string.h>
 #include <inttypes.h>
 #include <getopt.h>
+#include <spawn.h>
 
 #include <sys/sysctl.h>
 #include <sys/kern_memorystatus.h>
 
 #define FLAG_PLATFORMIZE (1 << 1)
+
+extern char **environ;
 
 void patchyPatchyEggMan() {
     // Make sure setuid(0) and platformization works on Chimera or Electra.
@@ -57,23 +60,27 @@ int main(int argc, const char * argv[]) {
     if (getuid() != 0) {
         patchyPatchyEggMan();
     }
-    static const char *usage = "\noverb0ard, made by Doregon with love <3\nusage: %s [-l limit] [-p priority] process\nSee the GitHub repository for more information.\n\n";
+    static const char *usage = "\noverb0ard, made by Doregon with love <3\nusage: %s [-l limit] [-s set] [-p priority] process\nSee the GitHub repository for more information.\n\n";
 
     static struct option opts[] = {
         {"limit", optional_argument, NULL, 'l'},
         {"priority", optional_argument, NULL, 'p'},
+        {"set", optional_argument, NULL, 's'},
         {NULL, 0, NULL, 0}
     };
 
     int ch;
-    char *prioritystr = NULL, *limitstr = NULL;
-    while ((ch = getopt_long(argc, (char * const *)argv, "l:p:", opts, NULL)) != -1) {
+    const char *prioritystr = NULL, *limitstr = NULL, *setstr = NULL;
+    while ((ch = getopt_long(argc, (char * const *)argv, "l:p:s:", opts, NULL)) != -1) {
         switch (ch) {
             case 'l':
                 limitstr = optarg;
                 break;
             case 'p':
                 prioritystr = optarg;
+                break;
+            case 's':
+                setstr = optarg;
                 break;
         }
     }
@@ -82,7 +89,7 @@ int main(int argc, const char * argv[]) {
     argc -= optind;
     argv += optind;
 
-    if (argc == 0 || (prioritystr == NULL && limitstr == NULL)) {
+    if (argc == 0 || (prioritystr == NULL && limitstr == NULL && setstr == NULL)) {
         fprintf(stderr, usage, overb0ard);
         return 1;
     }
@@ -126,20 +133,21 @@ int main(int argc, const char * argv[]) {
     if (limitstr) {
         uint32_t limit = strtoimax(limitstr, &endptr, 0);
         if (limitstr == endptr || *endptr != '\0') {
-            fprintf(stderr, "%s: %s: Invalid limit\n", overb0ard, limitstr);
+            fprintf(stderr, "%s is not a valid limit for the process %s.\n", limitstr, process);
             return 1;
         }
 
         if (memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT, pid, limit, NULL, 0) == -1) {
-            fprintf(stderr, "%s: error: %s\n", overb0ard, strerror(errno));
+            fprintf(stderr, "%s exited with an error: %s\n", overb0ard, strerror(errno));
             return 1;
         }
+        printf("The limit of %s was set to %s megabytes sucessfully.\n", process, limitstr);
     }
 
     if (prioritystr) {
         uint32_t priority = strtoimax(prioritystr, &endptr, 0);
         if (prioritystr == endptr || *endptr != '\0') {
-            fprintf(stderr, "%s: %s: Invalid priority\n", overb0ard, prioritystr);
+            fprintf(stderr, "%s is not a valid priority.\n", prioritystr);
             return 1;
         }
 
@@ -149,9 +157,16 @@ int main(int argc, const char * argv[]) {
         properties.priority = priority;
 
         if (memorystatus_control(MEMORYSTATUS_CMD_GRP_SET_PROPERTIES, 0, 0, &properties, sizeof(memorystatus_priority_entry_t)) == -1) {
-            fprintf(stderr, "%s: error: %s\n", overb0ard, strerror(errno));
+            fprintf(stderr, "%s exited with an error:  %s\n", overb0ard, strerror(errno));
             return 1;
         }
+        printf("The priority of %s was set to %s successfully.\n", process, prioritystr);
+    }
+    
+    if (setstr) {
+    //  This is where the persistent stuff will go.
+        printf("The \"set\" option is not yet available.\nIt will be released in version 1.2\n");
+        return 1;
     }
     
     return 0;
