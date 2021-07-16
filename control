@@ -3,11 +3,11 @@ Name: overb0ard
 Depends: firmware (>= 6.0)
 Conflicts: com.doregon.overb0ard-dev, com.kramerapps.jetsamctl
 Replaces: com.kramerapps.jetsamctl
-Version: 1.0.3
+Version: 1.1
 Architecture: iphoneos-arm
 Description: Take control of your device's memory.
 Maintainer: Adam Tunnic <tunnic.adam@gmail.com>
 Author: Adam Tunnic <tunnic.adam@gmail.com>
-Depiction: https://doregon.github.io/json-webviews/?json=https://doregon.github.io/cydia/depictions/natives/com.doregon.overb0ard.json&name=overb0ard&dev=Adam%20Tunnic&section=System
-SileoDepiction: https://doregon.github.io/cydia/depictions/natives/com.doregon.overb0ard.json
+Depiction: https://doregon.github.io/json-webviews/?json=https://repo.doregon.gq/depictions/natives/com.doregon.overb0ard.json&name=overb0ard&dev=Adam%20Tunnic&section=System
+SileoDepiction: https://repo.doregon.gq/depictions/natives/com.doregon.overb0ard.json
 Section: System
