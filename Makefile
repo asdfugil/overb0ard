@@ -25,7 +25,7 @@ jetsamctl_iphoneos-arm64.deb: jetsamctl_iphone
 	sed -e 's/@ARCH@/iphoneos-arm64/' control > stage-iphoneos-arm64/DEBIAN/control
 	chmod 644 stage-iphoneos-arm64/DEBIAN/control
 	$(LIPO) jetsamctl_iphone -thin arm64 -output stage-iphoneos-arm64/var/jb/usr/bin/jetsamctl
-	dpkg-deb -b stage-iphoneos-arm64 "$@"
+	dpkg-deb --root-owner-group -b stage-iphoneos-arm64 "$@"
 
 jetsamctl_darwin-arm64.deb: jetsamctl_mac
 	rm -rf stage-darwin-arm64
@@ -34,7 +34,7 @@ jetsamctl_darwin-arm64.deb: jetsamctl_mac
 	sed -e 's/@ARCH@/darwin-arm64/' control > stage-darwin-arm64/DEBIAN/control
 	chmod 644 stage-darwin-arm64/DEBIAN/control
 	$(LIPO) jetsamctl_mac -thin arm64 -output stage-darwin-arm64/opt/procursus/bin/jetsamctl
-	dpkg-deb -b stage-darwin-arm64 "$@"
+	dpkg-deb --root-owner-group -b stage-darwin-arm64 "$@"
 
 jetsamctl_darwin-amd64.deb: jetsamctl_mac
 	rm -rf stage-darwin-amd64
@@ -43,7 +43,7 @@ jetsamctl_darwin-amd64.deb: jetsamctl_mac
 	sed -e 's/@ARCH@/darwin-amd64/' control > stage-darwin-amd64/DEBIAN/control
 	chmod 644 stage-darwin-amd64/DEBIAN/control
 	$(LIPO) jetsamctl_mac -thin x86_64 -output stage-darwin-amd64/opt/procursus/bin/jetsamctl
-	dpkg-deb -b stage-darwin-amd64 "$@"
+	dpkg-deb --root-owner-group -b stage-darwin-amd64 "$@"
 
 jetsamctl_iphoneos-arm.deb: jetsamctl_iphone
 	rm -rf stage-iphoneos-arm
@@ -52,7 +52,7 @@ jetsamctl_iphoneos-arm.deb: jetsamctl_iphone
 	sed -e 's/@ARCH@/iphoneos-arm/' control> stage-iphoneos-arm/DEBIAN/control
 	chmod 644 stage-iphoneos-arm/DEBIAN/control
 	install -m755 jetsamctl_iphone stage-iphoneos-arm/usr/bin/jetsamctl
-	dpkg-deb -b stage-iphoneos-arm "$@"
+	dpkg-deb --root-owner-group -b stage-iphoneos-arm "$@"
 
 jetsamctl_appletvos-arm64.deb: jetsamctl_tv
 	rm -rf stage-appletvos-arm64
@@ -61,7 +61,7 @@ jetsamctl_appletvos-arm64.deb: jetsamctl_tv
 	sed -e 's/@ARCH@/appletvos-arm64/' control> stage-appletvos-arm64/DEBIAN/control
 	chmod 644 stage-appletvos-arm64/DEBIAN/control
 	install -m755 jetsamctl_tv stage-appletvos-arm64/usr/bin/jetsamctl
-	dpkg-deb -b stage-appletvos-arm64 "$@"
+	dpkg-deb --root-owner-group -b stage-appletvos-arm64 "$@"
 
 
 jetsamctl_iphone: main.c
