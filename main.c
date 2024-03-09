@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <getopt.h>
 #include <spawn.h>
+#include <TargetConditionals.h>
 
 #include <sys/sysctl.h>
 
@@ -144,15 +145,30 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "%s is not a valid limit for the process %s.\n", limitstr, process);
             return 1;
         }
-        
-        if (__builtin_available(macOS 10.10, iOS 8.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
+#if TARGET_OS_OSX
+        if (__builtin_available(macOS 10.11, *)) {
+            memorystatus_memlimit_properties_t props;
+            memset(&props, '\0', sizeof(props));
+            props.memlimit_active = limit;
+            props.memlimit_active_attr = MEMORYSTATUS_MEMLIMIT_ATTR_FATAL;
+            props.memlimit_inactive = limit;
+            props.memlimit_active_attr = MEMORYSTATUS_MEMLIMIT_ATTR_FATAL;
+            if (memorystatus_control(MEMORYSTATUS_CMD_SET_MEMLIMIT_PROPERTIES, pid, 0, &props, sizeof(props)) == -1) {
+                fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_SET_MEMLIMIT_PROPERTIES) error: %d: %s\n", errno, strerror(errno));
+                return 1;
+            }
+        }
+#else
+        if (__builtin_available(iOS 8.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
             if (memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT, pid, limit, NULL, 0) == -1) {
                 fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
             set = true;
-        } else {
-            fprintf(stderr, "Setting jetsam task limit is not supported on this OS\n");
+        }
+#endif
+        else {
+            fprintf(stderr, "Setting task memory limit is not supported on this OS\n");
         }
 
         if (set) printf("The limit of %s was set to %s MiB sucessfully.\n", process, limitstr);
@@ -166,7 +182,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         
-        if (__builtin_available(macOS 10.9, iOS 7.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
+        if (__builtin_available(iOS 7.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
             if (memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_HIGH_WATER_MARK, pid, watermark, NULL, 0) == -1) {
                 fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_HIGH_WATER_MARK) error: %d: %s\n", errno, strerror(errno));
                 return 1;
@@ -240,7 +256,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (freezabilitystr) {
-        if (__builtin_available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, bridgeOS 3.0, *)) {
+#if TARGET_OS_IPHONE
+        if (__builtin_available(iOS 12.0, tvOS 12.0, watchOS 5.0, bridgeOS 3.0, *)) {
             int freezability = -1;
             if (strcasecmp(freezabilitystr, "true") == 0) freezability = 1;
             else if (strcasecmp(freezabilitystr, "false") == 0) freezability = 0;
@@ -262,7 +279,9 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
             printf("Process %s is now %s.\n", process, freezability ? "freezable" : "unfreezable");
-        } else {
+        } else
+#endif
+        {
             fprintf(stderr, "Setting freezability is not supported on this OS\n");
         }
     }
@@ -279,6 +298,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
+#if TARGET_OS_IPHONE
         if (__builtin_available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, bridgeOS 6.0, *)) {
             if (pid == getpid()) {
                 if ((freezable = memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_IS_FREEZABLE, pid, 0, NULL, 0)) == -1) {
@@ -293,13 +313,14 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        if (__builtin_available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, bridgeOS 7.0, *)) {
+        if (__builtin_available(iOS 16.0, tvOS 16.0, watchOS 9.0, bridgeOS 7.0, *)) {
             if ((swappable = memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_COALITION_IS_SWAPPABLE, pid, swappable, NULL, 0)) == -1) {
                 fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_COALITION_IS_SWAPPABLE) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
         }
-
+#endif
+        
 
         if (__builtin_available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, bridgeOS 4.0, *)) {
             if (memorystatus_control(MEMORYSTATUS_CMD_GET_MEMLIMIT_PROPERTIES, pid, 0, &memlimit_prop, sizeof(memlimit_prop)) == -1) {
@@ -346,12 +367,18 @@ int main(int argc, char* argv[]) {
             printf("Managed                      : %s\n", managed ? "true" : "false");
         }
         
+#if TARGET_OS_IPHONE
         if (__builtin_available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, bridgeOS 6.0, *)) {
             if (pid == getpid()) {
                 printf("Frozen                       : %s\n" , frozen ? "true" : "false");
                 printf("Freezable                    : %s\n", freezable ? "true" : "false");
             }
         }
+
+        if (__builtin_available(iOS 16.0, tvOS 16.0, watchOS 9.0, bridgeOS 7.0, *)) {
+            printf("Swappable                    : %s\n" , swappable ? "true" : "false");
+        }
+#endif
         
     }
 
