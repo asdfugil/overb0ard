@@ -309,7 +309,10 @@ int main(int argc, char* argv[]) {
     }
 
     if (info) {
-        int managed = 0, freezable = 0, swappable = 0, frozen = 0;
+        int managed = 0;
+#if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR && !TARGET_OS_MACCATALYST
+        int freezable = 0, swappable = 0, frozen = 0;
+#endif
         uint64_t excess_footprint = 0;
         memorystatus_memlimit_properties2_t memlimit_prop;
 

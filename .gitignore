@@ -3,7 +3,7 @@ obj
 .DS_Store
 packages/
 theos
-jetsamctl
+jetsamctl*
 *.deb
 stage-*
 jetsamctl.dSYM
