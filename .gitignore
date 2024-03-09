@@ -4,3 +4,6 @@ obj
 packages/
 theos
 jetsamctl
+*.deb
+stage-*
+jetsamctl.dSYM

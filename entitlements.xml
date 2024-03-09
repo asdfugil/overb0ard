@@ -3,13 +3,13 @@
 <dict>
     <key>platform-application</key>
     <true/>
-    <key>com.apple.private.skip-library-validation</key>
+    <key>com.apple.private.security.no-container</key>
     <true/>
     <key>com.apple.security.inherit</key>
     <true/>
     <key>get-task-allow</key>
     <true/>
-    <key>dynamic-codesigning</key>
+    <key>com.apple.private.memorystatus</key>
     <true/>
     <key>com.apple.springboard.launchapplications</key>
     <true/>

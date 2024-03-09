@@ -1,16 +1,39 @@
-ARCHS=armv7 armv7s arm64 arm64e
-TARGET = iphone:clang:latest:6.0
+CC = xcrun -sdk iphoneos clang
+CFLAGS = -arch arm64 -arch armv7 -g -Oz -Wall -Wextra -miphoneos-version-min=7.0
+CFLAGS += -Iinclude
+LDFLAGS =
+DSYMUTIL = dsymutil
+STRIP = strip
+#LIBS = -framework Foundation -lobjc
+LDID = ldid
 
-include theos/makefiles/common.mk
+all: jetsamctl
 
-TOOL_NAME = jetsamctl
-jetsamctl_CFLAGS = -Wall -Wpedantic -Wextra -Wobjc-method-access -Werror -Wformat
-jetsamctl_FILES = main.m
-jetsamctl_CODESIGN_FLAGS = -Sentitlements.xml
-include $(THEOS_MAKE_PATH)/tool.mk
+package: jetsamctl jetsamctl_iphoneos-arm64.deb jetsamctl_iphoneos-arm.deb
 
-before-all::
-	@if [ ! -f "$(THEOS_INCLUDE_PATH)/sys/kern_memorystatus.h" ]; then \
-		mkdir -p "$(THEOS_INCLUDE_PATH)/sys"; \
-		curl -s -o "$(THEOS_INCLUDE_PATH)/sys/kern_memorystatus.h" -L "http://www.opensource.apple.com/source/xnu/xnu-2782.1.97/bsd/sys/kern_memorystatus.h?txt"; \
-	fi
+jetsamctl_iphoneos-arm64.deb: jetsamctl
+	rm -rf stage-iphoneos-arm64
+	mkdir -p stage-iphoneos-arm64/var/jb/usr/bin
+	mkdir -p stage-iphoneos-arm64/DEBIAN
+	sed -e 's/@ARCH@/iphoneos-arm64/' control > stage-iphoneos-arm64/DEBIAN/control
+	chmod 644 stage-iphoneos-arm64/DEBIAN/control
+	install -m755 jetsamctl stage-iphoneos-arm64/var/jb/usr/bin
+	dpkg-deb -b stage-iphoneos-arm64 "$@"
+
+jetsamctl_iphoneos-arm.deb: jetsamctl
+	rm -rf stage-iphoneos-arm
+	mkdir -p stage-iphoneos-arm/usr/bin
+	mkdir -p stage-iphoneos-arm/DEBIAN
+	sed -e 's/@ARCH@/iphoneos-arm/' control> stage-iphoneos-arm/DEBIAN/control
+	chmod 644 stage-iphoneos-arm/DEBIAN/control
+	install -m755 jetsamctl stage-iphoneos-arm/usr/bin
+	dpkg-deb -b stage-iphoneos-arm "$@"
+
+jetsamctl: main.c
+	$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS) main.c -Iinclude -o jetsamctl
+	$(DSYMUTIL) jetsamctl
+	$(STRIP) jetsamctl
+	$(LDID) -Sentitlements.xml jetsamctl
+
+clean:
+	rm -rf jetsamctl* *.deb stage*
