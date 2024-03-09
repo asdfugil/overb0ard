@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		01F82BD62B9CA03D00C92B7D /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 01F82BD52B9CA03D00C92B7D /* main.c */; };
-		01F82BDD2B9CAF0700C92B7D /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 01F82BDC2B9CAF0700C92B7D /* Makefile */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -138,7 +137,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				01F82BDD2B9CAF0700C92B7D /* Makefile in Sources */,
 				01F82BD62B9CA03D00C92B7D /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
