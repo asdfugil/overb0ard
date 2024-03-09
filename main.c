@@ -19,8 +19,10 @@ void usage(const char* overb0ard) {
     "-l, --limit <limit>\t\tSet fatal process memory limit in MiB\n"
     "-M, --high-water-mark <limit>\tSet process memory high water mark\n"
     "-p, --priority <priority>\tSet process priority\n"
+#if (TARGET_OS_OSX || TARGET_OS_SIMULATOR || TARGET_OS_MACCATALYST)
     "-P, --probability <0|1>\t\tSet process use probability (0 = unlikely, 1 = likely)\n"
     "-f, --freezability <true|false>\tSet whether process is freezable\n"
+#endif
     "-m, --managed <true|false>\tSet whether process is managed\n"
     "-I, --process-info\t\tGet process memory information\n"
     , overb0ard);
@@ -145,7 +147,7 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "%s is not a valid limit for the process %s.\n", limitstr, process);
             return 1;
         }
-#if TARGET_OS_OSX
+#if TARGET_OS_OSX || TARGET_OS_SIMULATOR || TARGET_OS_MACCATALYST
         if (__builtin_available(macOS 10.11, *)) {
             memorystatus_memlimit_properties_t props;
             memset(&props, '\0', sizeof(props));
@@ -181,14 +183,30 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "%s is not a valid high water mark for the process %s.\n", watermarkstr, process);
             return 1;
         }
-        
+
+#if TARGET_OS_OSX || TARGET_OS_SIMULATOR || TARGET_OS_MACCATALYST
+        if (__builtin_available(macOS 10.11, *)) {
+            memorystatus_memlimit_properties_t props;
+            memset(&props, '\0', sizeof(props));
+            props.memlimit_active = watermark;
+            props.memlimit_active_attr = 0;
+            props.memlimit_inactive = watermark;
+            props.memlimit_active_attr = 0;
+            if (memorystatus_control(MEMORYSTATUS_CMD_SET_MEMLIMIT_PROPERTIES, pid, 0, &props, sizeof(props)) == -1) {
+                fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_SET_MEMLIMIT_PROPERTIES) error: %d: %s\n", errno, strerror(errno));
+                return 1;
+            }
+        }
+#else
         if (__builtin_available(iOS 7.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
             if (memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_HIGH_WATER_MARK, pid, watermark, NULL, 0) == -1) {
                 fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_HIGH_WATER_MARK) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
             set = true;
-        } else {
+        } else
+#endif
+        {
             fprintf(stderr, "Setting jetsam task high water mark is not supported on this OS\n");
         }
 
@@ -256,7 +274,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (freezabilitystr) {
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR && !TARGET_OS_MACCATALYST
         if (__builtin_available(iOS 12.0, tvOS 12.0, watchOS 5.0, bridgeOS 3.0, *)) {
             int freezability = -1;
             if (strcasecmp(freezabilitystr, "true") == 0) freezability = 1;
@@ -298,7 +316,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR && !TARGET_OS_MACCATALYST
         if (__builtin_available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, bridgeOS 6.0, *)) {
             if (pid == getpid()) {
                 if ((freezable = memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_IS_FREEZABLE, pid, 0, NULL, 0)) == -1) {
@@ -367,7 +385,7 @@ int main(int argc, char* argv[]) {
             printf("Managed                      : %s\n", managed ? "true" : "false");
         }
         
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR && !TARGET_OS_MACCATALYST
         if (__builtin_available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, bridgeOS 6.0, *)) {
             if (pid == getpid()) {
                 printf("Frozen                       : %s\n" , frozen ? "true" : "false");
