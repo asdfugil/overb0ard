@@ -15,7 +15,11 @@
 
 void usage(const char* overb0ard) {
     fprintf(stderr,
-    "usage: %s [-l limit] [-p priority] [-P probability] [-f freezability] [-m management state] [-I] <Process name or PID>\n"
+    "usage: %s [-l limit] [-p priority] "
+#if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR && !TARGET_OS_MACCATALYST
+            "[-P probability] [-f freezability]"
+#endif
+            " [-m management state] [-I] <Process name or PID>\n"
     "-l, --limit <limit>\t\tSet fatal process memory limit in MiB\n"
     "-M, --high-water-mark <limit>\tSet process memory high water mark\n"
     "-p, --priority <priority>\tSet process priority\n"
