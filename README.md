@@ -1,10 +1,6 @@
 # overb0ard
 
-**iOS and macOS share a program: jetsam.** The tl;dr is that jetsam monitors memory usage, asks for memory when there isn't much free, and kills other programs that don't give back as much as was requested. This tool--a continuation from conradev's jetsamctl--serves to override the strict limits that jetsam sets on iOS devices with a simple command. All you need is a device with iOS 6 or later.
-
-### Installation
-
-The latest Debian package can be downloaded from my [Cydia Repository](https://doregon.github.io/cydia) in the System section.
+**iOS and macOS share a program: jetsam.** The tl;dr is that jetsam monitors memory usage, asks for memory when there isn't much free, and kills other programs that don't give back as much as was requested. This tool--a continuation from conradev's jetsamctl--serves to override the strict limits that jetsam sets on iOS devices with a simple command. All you need is a device with iOS 7 or later.
 
 ### Usage
 
@@ -26,6 +22,8 @@ Here is a table of all of the priorities and their numerical values. A lower pri
 
 | Priority | Value | Examples |
 |:--|:--:|:--:|
+| Idle Head | -2 | |
+| Default | -1 | |
 | Idle | 0 | |
 | Idle (Deferred) | 1 | |
 | Background (Opportunistic) | 2 | |
@@ -33,7 +31,7 @@ Here is a table of all of the priorities and their numerical values. A lower pri
 | Mail | 4 | Apple Mail |
 | Phone | 5 | Phone app |
 | UI Support | 8 | Keyboard extension |
-| Foreground Support | 9 | Share extension |
+| Foreground Support | 90 | Share extension |
 | Foreground | 10 | Foreground application |
 | Audio and Accessory | 12 | |
 | Conductor | 13 | |
@@ -41,7 +39,9 @@ Here is a table of all of the priorities and their numerical values. A lower pri
 | Executive | 17 | |
 | Important | 18 | |
 | Critical | 19 | |
+| Maximum | 21 | |
 
+Since iOS 16, all non-negative priorities has been multiplied by 10, so on iOS 16, the priority for SpringBoard is 160.
 
 ## License
 

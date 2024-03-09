@@ -30,6 +30,7 @@
 		01F82BDA2B9CA04900C92B7D /* kern_memorystatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kern_memorystatus.h; sourceTree = "<group>"; };
 		01F82BDB2B9CA0E800C92B7D /* entitlements.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = entitlements.xml; sourceTree = "<group>"; };
 		01F82BDC2B9CAF0700C92B7D /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		01F82BDE2B9CC0B900C92B7D /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +48,7 @@
 			isa = PBXGroup;
 			children = (
 				01F82BDB2B9CA0E800C92B7D /* entitlements.xml */,
+				01F82BDE2B9CC0B900C92B7D /* README.md */,
 				01F82BD72B9CA04900C92B7D /* include */,
 				01F82BD52B9CA03D00C92B7D /* main.c */,
 				01F82BDC2B9CAF0700C92B7D /* Makefile */,

@@ -16,7 +16,7 @@ void usage(const char* overb0ard) {
     fprintf(stderr,
     "usage: %s [-l limit] [-p priority] [-P probability] [-f freezability] [-m management state] [-I] <Process name or PID>\n"
     "-l, --limit <limit>\t\tSet fatal process memory limit in MiB\n"
-    "-p, --priority <priority>\tSet process priority (0-210, or special values -2 and -1)\n"
+    "-p, --priority <priority>\tSet process priority\n"
     "-P, --probability <0|1>\t\tSet process use probability (0 = unlikely, 1 = likely)\n"
     "-f, --freezability <true|false>\tSet whether process is freezable\n"
     "-m, --managed <true|false>\tSet whether process is managed\n"
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
     if (prioritystr) {
         int priority = (int)strtoimax(prioritystr, &endptr, 0);
         bool set = false;
-        if (prioritystr == endptr || *endptr != '\0' || priority > JETSAM_PRIORITY_MAX || priority < JETSAM_PRIORITY_IDLE_HEAD) {
+        if (prioritystr == endptr || *endptr != '\0') {
             fprintf(stderr, "%s is not a valid priority.\n", prioritystr);
             return 1;
         }
