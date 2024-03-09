@@ -19,7 +19,7 @@ void usage(const char* overb0ard) {
     "-l, --limit <limit>\t\tSet fatal process memory limit in MiB\n"
     "-M, --high-water-mark <limit>\tSet process memory high water mark\n"
     "-p, --priority <priority>\tSet process priority\n"
-#if (TARGET_OS_OSX || TARGET_OS_SIMULATOR || TARGET_OS_MACCATALYST)
+#if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR && !TARGET_OS_MACCATALYST
     "-P, --probability <0|1>\t\tSet process use probability (0 = unlikely, 1 = likely)\n"
     "-f, --freezability <true|false>\tSet whether process is freezable\n"
 #endif
