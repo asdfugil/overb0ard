@@ -16,6 +16,7 @@ void usage(const char* overb0ard) {
     fprintf(stderr,
     "usage: %s [-l limit] [-p priority] [-P probability] [-f freezability] [-m management state] [-I] <Process name or PID>\n"
     "-l, --limit <limit>\t\tSet fatal process memory limit in MiB\n"
+    "-M, --high-water-mark <limit>\tSet process memory high water mark\n"
     "-p, --priority <priority>\tSet process priority\n"
     "-P, --probability <0|1>\t\tSet process use probability (0 = unlikely, 1 = likely)\n"
     "-f, --freezability <true|false>\tSet whether process is freezable\n"
@@ -27,6 +28,7 @@ void usage(const char* overb0ard) {
 int main(int argc, char* argv[]) {
     struct option opts[] = {
         {"limit", required_argument, NULL, 'l'},
+        {"high-water-mark", required_argument, NULL, 'M'},
         {"priority", required_argument, NULL, 'p'},
         {"probability", required_argument, NULL, 'P'},
         {"freezability", required_argument, NULL, 'f'},
@@ -37,8 +39,9 @@ int main(int argc, char* argv[]) {
 
     int ch;
     bool info = false;
-    const char *prioritystr = NULL, *limitstr = NULL, *probabilitystr = NULL, *freezabilitystr = NULL, *managedstr = NULL;
-    while ((ch = getopt_long(argc, (char * const *)argv, "l:p:P:f:Im:", opts, NULL)) != -1) {
+    const char *prioritystr = NULL, *limitstr = NULL, *probabilitystr = NULL, 
+    *freezabilitystr = NULL, *managedstr = NULL, *watermarkstr = NULL;
+    while ((ch = getopt_long(argc, (char * const *)argv, "l:p:P:f:Im:M:", opts, NULL)) != -1) {
         switch (ch) {
             case 'l':
                 limitstr = optarg;
@@ -54,6 +57,9 @@ int main(int argc, char* argv[]) {
                 break;
             case 'm':
                 managedstr = optarg;
+                break;
+            case 'M':
+                watermarkstr = optarg;
                 break;
             case 'I':
                 info = true;
@@ -139,22 +145,9 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         
-        if (__builtin_available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, bridgeOS 4.0, *)) {
+        if (__builtin_available(macOS 10.10, iOS 8.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
             if (memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT, pid, limit, NULL, 0) == -1) {
                 fprintf(stderr, "memorystatus_control() error: %d: %s\n", errno, strerror(errno));
-                return 1;
-            }
-            set = true;
-        } else if (__builtin_available(macOS 10.11, iOS 9.0, tvOS 9.0, watchOS 2.0, bridgeOS 1.0, *)) {
-            memorystatus_memlimit_properties_t props;
-            memset(&props, '\0', sizeof(memorystatus_memlimit_properties_t));
-            props.memlimit_active = limit;
-            props.memlimit_active_attr = MEMORYSTATUS_MEMLIMIT_ATTR_FATAL;
-            props.memlimit_inactive = limit;
-            props.memlimit_inactive_attr = MEMORYSTATUS_MEMLIMIT_ATTR_FATAL;
-            
-            if (memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT, pid, 0, &props, sizeof(memorystatus_memlimit_properties_t)) == -1) {
-                fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
             set = true;
@@ -162,7 +155,28 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "Setting jetsam task limit is not supported on this OS\n");
         }
 
-        if (set) printf("The limit of %s was set to %s megabytes sucessfully.\n", process, limitstr);
+        if (set) printf("The limit of %s was set to %s MiB sucessfully.\n", process, limitstr);
+    }
+    
+    if (watermarkstr) {
+        uint32_t watermark = (uint32_t)strtoimax(watermarkstr, &endptr, 0);
+        bool set = false;
+        if (watermarkstr == endptr || *endptr != '\0') {
+            fprintf(stderr, "%s is not a valid high water mark for the process %s.\n", watermarkstr, process);
+            return 1;
+        }
+        
+        if (__builtin_available(macOS 10.9, iOS 7.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
+            if (memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_HIGH_WATER_MARK, pid, watermark, NULL, 0) == -1) {
+                fprintf(stderr, "memorystatus_control() error: %d: %s\n", errno, strerror(errno));
+                return 1;
+            }
+            set = true;
+        } else {
+            fprintf(stderr, "Setting jetsam task high water mark is not supported on this OS\n");
+        }
+
+        if (set) printf("The high water mark of %s was set to %s MiB sucessfully.\n", process, watermarkstr);
     }
 
     if (prioritystr) {
@@ -173,7 +187,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        if (__builtin_available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, bridgeOS 4.0, *)) {
+        if (__builtin_available(macOS 10.10, iOS 8.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
             memorystatus_properties_entry_v1_t properties;
             memset(&properties, 0, sizeof(memorystatus_properties_entry_v1_t));
             properties.pid = pid;
