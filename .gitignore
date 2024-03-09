@@ -7,3 +7,4 @@ jetsamctl
 *.deb
 stage-*
 jetsamctl.dSYM
+overb0ard.xcodeproj/project.xcworkspace/xcuserdata
