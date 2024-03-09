@@ -4,7 +4,6 @@ CFLAGS += -Iinclude
 LDFLAGS =
 DSYMUTIL = dsymutil
 STRIP = strip
-#LIBS = -framework Foundation -lobjc
 LDID = ldid
 
 all: jetsamctl

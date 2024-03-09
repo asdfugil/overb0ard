@@ -274,9 +274,11 @@
 				CODE_SIGN_ENTITLEMENTS = entitlements.xml;
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
+				INSTALL_PATH = /var/jb/usr/local/bin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SYSTEM_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/include";
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -287,9 +289,11 @@
 				CODE_SIGN_ENTITLEMENTS = entitlements.xml;
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
+				INSTALL_PATH = /var/jb/usr/local/bin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SYSTEM_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/include";
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
