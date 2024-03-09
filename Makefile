@@ -14,7 +14,7 @@ LIPO = lipo
 BINS = jetsamctl_iphone jetsamctl_mac jetsamctl_tv
 DEBS = jetsamctl_iphoneos-arm64.deb jetsamctl_iphoneos-arm.deb jetsamctl_darwin-amd64.deb jetsamctl_darwin-arm64.deb jetsamctl_appletvos-arm64.deb
 
-all: $(BINS) $(DEBS)
+all: $(BINS)
 
 package: $(BINS) $(DEBS)
 
