@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
         
         if (__builtin_available(macOS 10.10, iOS 8.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
             if (memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT, pid, limit, NULL, 0) == -1) {
-                fprintf(stderr, "memorystatus_control() error: %d: %s\n", errno, strerror(errno));
+                fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
             set = true;
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
         
         if (__builtin_available(macOS 10.9, iOS 7.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
             if (memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_HIGH_WATER_MARK, pid, watermark, NULL, 0) == -1) {
-                fprintf(stderr, "memorystatus_control() error: %d: %s\n", errno, strerror(errno));
+                fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_HIGH_WATER_MARK) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
             set = true;
@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
             properties.version = MEMORYSTATUS_MPE_VERSION_1;
             
             if (memorystatus_control(MEMORYSTATUS_CMD_GRP_SET_PROPERTIES, 0, MEMORYSTATUS_FLAGS_GRP_SET_PROBABILITY, &properties, sizeof(memorystatus_properties_entry_v1_t)) == -1) {
-                fprintf(stderr, "memorystatus_control() error: %d: %s\n", errno, strerror(errno));
+                fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_GRP_SET_PROPERTIES) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
             printf("The usage probability of %s was set to %s successfully.\n", process, probability ? "likely" : "unlikely");
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
             }
 
             if (memorystatus_control(MEMORYSTATUS_CMD_SET_PROCESS_IS_FREEZABLE, pid, (uint32_t)freezability, NULL, 0) == -1) {
-                fprintf(stderr, "memorystatus_control() error: %d: %s\n", errno, strerror(errno));
+                fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_SET_PROCESS_IS_FREEZABLE) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
             printf("Process %s is now %s.\n", process, freezability ? "freezable" : "unfreezable");
