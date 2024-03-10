@@ -19,7 +19,7 @@ void usage(const char* overb0ard) {
 #if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR && !TARGET_OS_MACCATALYST
             "[-P probability] [-f freezability]"
 #endif
-            " [-m management state] [-I] [Process name or PID]\n"
+            " [-m management state] [-Igh] [Process name or PID]\n"
     "-l, --limit <limit>\t\tSet fatal process memory limit in MiB\n"
     "-M, --high-water-mark <limit>\tSet process memory high water mark\n"
     "-p, --priority <priority>\tSet process priority\n"
