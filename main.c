@@ -19,7 +19,7 @@ void usage(const char* overb0ard) {
 #if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR && !TARGET_OS_MACCATALYST
             "[-P probability] [-f freezability]"
 #endif
-            " [-m management state] [-I] <Process name or PID>\n"
+            " [-m management state] [-I] [Process name or PID]\n"
     "-l, --limit <limit>\t\tSet fatal process memory limit in MiB\n"
     "-M, --high-water-mark <limit>\tSet process memory high water mark\n"
     "-p, --priority <priority>\tSet process priority\n"
@@ -29,6 +29,7 @@ void usage(const char* overb0ard) {
 #endif
     "-m, --managed <true|false>\tSet whether process is managed\n"
     "-I, --process-info\t\tGet process memory information\n"
+    "-g, --global-info\t\tGet global jetsam information\n"
     , overb0ard);
 }
 
@@ -41,14 +42,17 @@ int main(int argc, char* argv[]) {
         {"freezability", required_argument, NULL, 'f'},
         {"managed", required_argument, NULL, 'm'},
         {"process-info", no_argument, NULL, 'I'},
+        {"global-info", no_argument, NULL, 'g'},
+        {"help", no_argument, NULL, 'h'},
         {NULL, 0, NULL, 0}
     };
 
     int ch;
-    bool info = false;
-    const char *prioritystr = NULL, *limitstr = NULL, *probabilitystr = NULL, 
+    bool info = false, global_info = false, help = false;
+    const char *prioritystr = NULL, *limitstr = NULL, *probabilitystr = NULL,
     *freezabilitystr = NULL, *managedstr = NULL, *watermarkstr = NULL;
-    while ((ch = getopt_long(argc, (char * const *)argv, "l:p:P:f:Im:M:", opts, NULL)) != -1) {
+    
+    while ((ch = getopt_long(argc, (char * const *)argv, "l:p:P:f:Igm:M:h", opts, NULL)) != -1) {
         switch (ch) {
             case 'l':
                 limitstr = optarg;
@@ -71,24 +75,37 @@ int main(int argc, char* argv[]) {
             case 'I':
                 info = true;
                 break;
+            case 'g':
+                global_info = true;
+                break;
+            case 'h':
+                help = true;
+                break;
         }
     }
+    
+    bool need_process = !!(limitstr || prioritystr || probabilitystr || freezabilitystr || managedstr || watermarkstr || info) || !(global_info);
 
     const char *overb0ard = argv[0];
     argc -= optind;
     argv += optind;
+    
+    if (help) {
+        usage(overb0ard);
+        return 0;
+    }
 
-    if (argc == 0) {
+    if (need_process && argc == 0) {
         fprintf(stderr, "%s: No process specified\n", overb0ard);
         usage(overb0ard);
         return 1;
     }
 
     // Parse pid or get from process name
-    char *endptr;
+    char *endptr = NULL;
     const char *process = argv[0];
-    pid_t pid = (pid_t)strtoimax(process, &endptr, 0);
-    if (process == endptr || *endptr != '\0') {
+    pid_t pid = need_process ? (pid_t)strtoimax(process, &endptr, 0) : 0;
+    if (need_process && (process == endptr || *endptr != '\0')) {
         int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0};
 
         size_t size;
@@ -122,6 +139,24 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "%s: error: %s\n", overb0ard, strerror(ESRCH));
             return 1;
         }
+    }
+    
+    if (global_info) {
+        int lenient_mode = 0;
+        if (__builtin_available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, bridgeOS 4.0, *)) {
+            if ((lenient_mode = memorystatus_control(MEMORYSTATUS_CMD_GET_AGGRESSIVE_JETSAM_LENIENT_MODE, 0, 0, NULL, 0)) == -1) {
+                fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_GET_AGGRESSIVE_JETSAM_LENIENT_MODE) error: %d: %s\n", errno, strerror(errno));
+                return 1;
+            }
+        }
+
+        // TODO: sysctl kern.memorystatus_*
+        if (__builtin_available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, bridgeOS 4.0, *)) {
+            printf("Lenient mode                 : %s\n", lenient_mode ? "true" : "false");
+        } else {
+            fprintf(stderr, "No global jetsam information could be retrieved on your OS\n");
+        }
+        
     }
 
     if (managedstr) {
@@ -315,10 +350,11 @@ int main(int argc, char* argv[]) {
     if (info) {
         int managed = 0;
 #if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR && !TARGET_OS_MACCATALYST
-        int freezable = 0, swappable = 0, frozen = 0;
+        int freezable = 0, swappable = 0;
 #endif
         uint64_t excess_footprint = 0;
         memorystatus_memlimit_properties2_t memlimit_prop;
+        memorystatus_priority_entry_t prio_entry;
 
         if (__builtin_available(macOS 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, bridgeOS 3.0, *)) {
             if ((managed = memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_IS_MANAGED, pid, 0, NULL, 0)) == -1) {
@@ -334,16 +370,11 @@ int main(int argc, char* argv[]) {
                     fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_IS_FREEZABLE) error: %d: %s\n", errno, strerror(errno));
                     return 1;
                 }
-                
-                if ((frozen = memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_IS_FROZEN, pid, frozen, NULL, 0)) == -1) {
-                    fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_IS_FROZEN) error: %d: %s\n", errno, strerror(errno));
-                    return 1;
-                }
             }
         }
 
         if (__builtin_available(iOS 16.0, tvOS 16.0, watchOS 9.0, bridgeOS 7.0, *)) {
-            if ((swappable = memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_COALITION_IS_SWAPPABLE, pid, swappable, NULL, 0)) == -1) {
+            if ((swappable = memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_COALITION_IS_SWAPPABLE, pid, 0, NULL, 0)) == -1) {
                 fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_COALITION_IS_SWAPPABLE) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
@@ -357,14 +388,23 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
         } else if (__builtin_available(macOS 10.11, iOS 9.0, tvOS 9.0, watchOS 2.0, bridgeOS 1.0, *)) {
-            if (memorystatus_control(MEMORYSTATUS_CMD_GET_MEMLIMIT_PROPERTIES, pid, 0, &memlimit_prop.v1, sizeof(memlimit_prop.v1)) == -1) {
-                fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_GET_MEMLIMIT_PROPERTIES) error: %d: %s\n", errno, strerror(errno));
-                return 1;
-            }
             if (memorystatus_control(MEMORYSTATUS_CMD_GET_MEMLIMIT_EXCESS, pid, 0, &excess_footprint, sizeof(excess_footprint)) == -1) {
                 fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_GET_MEMLIMIT_EXCESS) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
+        }
+        if (__builtin_available(macOS 10.11, iOS 9.0, tvOS 9.0, watchOS 2.0, bridgeOS 1.0, *)) {
+            if (memorystatus_control(MEMORYSTATUS_CMD_GET_MEMLIMIT_PROPERTIES, pid, 0, &memlimit_prop.v1, sizeof(memlimit_prop.v1)) == -1) {
+                fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_GET_MEMLIMIT_PROPERTIES) error: %d: %s\n", errno, strerror(errno));
+                return 1;
+            }
+        }
+        
+        if (__builtin_available(macOS 10.9, iOS 7.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
+            if (memorystatus_control(MEMORYSTATUS_CMD_GET_PRIORITY_LIST, pid, 0, &prio_entry, sizeof(prio_entry)) == -1) {
+                fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_GET_PRIORITY_LIST) error: %d: %s\n", errno, strerror(errno));
+                return 1;
+            }            
         }
         
         if (__builtin_available(macOS 10.11, iOS 9.0, tvOS 9.0, watchOS 2.0, bridgeOS 1.0, *)) {
@@ -378,6 +418,32 @@ int main(int argc, char* argv[]) {
                    memlimit_prop.v1.memlimit_inactive,
                    (memlimit_prop.v1.memlimit_inactive_attr & MEMORYSTATUS_MEMLIMIT_ATTR_FATAL) ? "fatal" : "non-fatal",
                    excess_footprint
+                   );
+        } else if (__builtin_available(macOS 10.9, iOS 7.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
+            printf("Memory limit                 : %" PRId32 " MiB"
+                   ,prio_entry.limit);
+        }
+        
+        if (__builtin_available(macOS 10.9, iOS 7.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
+            printf("Frozen                       : %s\n"
+                   "Suspended                    : %s\n"
+                   "Was Thawed                   : %s\n"
+                   "Assertion driven             : %s\n"
+                   "Tracked                      : %s\n"
+                   "Idle Exit                    : %s\n"
+                   "Dirty                        : %s\n"
+                   "Priority                     : %" PRId32 "\n"
+                   "User Data                    : 0x%" PRIx64 "\n"
+                   ,
+                   (prio_entry.state & kMemorystatusFrozen)           ? "true" : "false",
+                   (prio_entry.state & kMemorystatusSuspended)        ? "true" : "false",
+                   (prio_entry.state & kMemorystatusWasThawed)        ? "true" : "false",
+                   (prio_entry.state & kMemorystatusAssertion)        ? "true" : "false",
+                   (prio_entry.state & kMemorystatusTracked)          ? "true" : "false",
+                   (prio_entry.state & kMemorystatusSupportsIdleExit) ? "true" : "false",
+                   (prio_entry.state & kMemorystatusDirty)            ? "true" : "false",
+                   prio_entry.priority,
+                   prio_entry.user_data
                    );
         }
         
@@ -399,7 +465,6 @@ int main(int argc, char* argv[]) {
 #if TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR && !TARGET_OS_MACCATALYST
         if (__builtin_available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, bridgeOS 6.0, *)) {
             if (pid == getpid()) {
-                printf("Frozen                       : %s\n" , frozen ? "true" : "false");
                 printf("Freezable                    : %s\n", freezable ? "true" : "false");
             }
         }
