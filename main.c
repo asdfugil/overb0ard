@@ -200,6 +200,7 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_SET_MEMLIMIT_PROPERTIES) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
+            set = 1;
         }
 #else
         if (__builtin_available(iOS 7.0, tvOS 9.0, watchOS 1.0, bridgeOS 1.0, *)) {
@@ -208,9 +209,9 @@ int main(int argc, char* argv[]) {
                 return 1;
             }
             set = true;
-        } else
+        }
 #endif
-        {
+        else {
             fprintf(stderr, "Setting jetsam task high water mark is not supported on this OS\n");
         }
 
