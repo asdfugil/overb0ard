@@ -105,6 +105,7 @@ int main(int argc, char* argv[]) {
 
         if (sysctl(mib, 4, processes, &size, NULL, 0) == -1) {
             fprintf(stderr, "%s: error: %s\n", overb0ard, strerror(errno));
+            free(processes);
             return 1;
         }
 
@@ -114,6 +115,8 @@ int main(int argc, char* argv[]) {
                 break;
             }
         }
+        
+        free(processes);
 
         if (pid == 0) {
             fprintf(stderr, "%s: error: %s\n", overb0ard, strerror(ESRCH));
