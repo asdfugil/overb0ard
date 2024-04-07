@@ -372,9 +372,18 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
+        
+        uint32_t swapping_supported = 0;
 
         if (__builtin_available(iOS 16.0, tvOS 16.0, watchOS 9.0, bridgeOS 7.0, *)) {
-            if ((swappable = memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_COALITION_IS_SWAPPABLE, pid, 0, NULL, 0)) == -1) {
+            size_t swapping_supported_len = sizeof(uint32_t);
+            int retval = sysctlbyname("kern.memorystatus_swap_all_apps", &swapping_supported, &swapping_supported_len, NULL, 0);
+            if (retval) {
+                fprintf(stderr, "sysctl kern.memorystatus_swap_all_apps failed: %d (%s)\n", errno, strerror(errno));
+                return -1;
+            }
+
+            if (swapping_supported && (swappable = memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_COALITION_IS_SWAPPABLE, pid, 0, NULL, 0)) == -1) {
                 fprintf(stderr, "memorystatus_control(MEMORYSTATUS_CMD_GET_PROCESS_COALITION_IS_SWAPPABLE) error: %d: %s\n", errno, strerror(errno));
                 return 1;
             }
@@ -469,7 +478,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        if (__builtin_available(iOS 16.0, tvOS 16.0, watchOS 9.0, bridgeOS 7.0, *)) {
+        if (swapping_supported) {
             printf("Swappable                    : %s\n" , swappable ? "true" : "false");
         }
 #endif
